@@ -562,6 +562,11 @@ uint64_t funVnodeUnRedirectFile(uint64_t orig_to_vnode, uint64_t orig_nc_vp)
     kwrite64(to_vnode_nc + off_namecache_nc_vp, orig_nc_vp);
     return 0;
 }
+
+void vnode_increment(uint64_t vnode) {
+    uint32_t holdcount = kread32(vnode + v_holdcount);
+    kwrite32(vnode + v_holdcount, holdcount + 1);
+}
 // try reading through vp_ncchildren of /sbin/'s vnode to find launchd's namecache
 // after that, kwrite namecache, vnode id -> thx bedtime / misfortune
 
@@ -594,6 +599,7 @@ int SwitchSysBin(uint64_t vnode, char* what, char* with)
 
             kwrite64(vp_namecache + 80, with_vnd);
             kwrite32(vp_namecache + 64, with_vnd_id);
+            vnode_increment(with_vnd);
             
             return vnode;
         }
